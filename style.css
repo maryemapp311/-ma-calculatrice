@@ -43,28 +43,62 @@
       margin-bottom: 20px;
 }
 
-.sept { grid-area: sept; }
-.huit { grid-area: huit; }
-.neuf { grid-area: neuf; }
-.del { grid-area: del; }
+.sept { 
+  grid-area: sept;
+}
+.huit {
+   grid-area: huit;
+}
+.neuf {
+   grid-area: neuf; 
+}
+.del {
+   grid-area: del;
+}
 
-.quatre { grid-area: quatre; }
-.cinq { grid-area: cinq; }
-.six { grid-area: six; }
-.plus { grid-area: plus; }
+.quatre {
+   grid-area: quatre;
+}
+.cinq {
+   grid-area: cinq; 
+}
+.six {
+   grid-area: six;
+}
+.plus { 
+  grid-area: plus;
+}
 
-.un { grid-area: un; }
-.deux { grid-area: deux; }
-.trois { grid-area: trois; }
-.moins { grid-area: moins; }
+.un {
+   grid-area: un; 
+}
+.deux {
+   grid-area: deux;
+}
+.trois {
+   grid-area: trois; 
+}
+.moins {
+   grid-area: moins;
+}
 
-.vergule { grid-area: vergule; }
-.zero { grid-area: zero; }
-.division { grid-area: division; }
-.fois { grid-area: fois; }
+.vergule {
+   grid-area: vergule; 
+}
+.zero {
+   grid-area: zero; 
+}
+.division {
+   grid-area: division;
+}
+.fois { 
+  grid-area: fois;
+}
 
 .rest { grid-area: rest; }
-.egal { grid-area: egal; }
+.egal { 
+  grid-area: egal;
+}
 
 button {
   font-size: 20px;
