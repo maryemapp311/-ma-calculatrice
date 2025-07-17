@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokédex Complet avec Pagination</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #c4d5ef;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        header input {
+            width: 50%;
+            max-width: 400px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 30px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .pokemon-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .pokemon-card {
+            background: white;
+            border-radius: 15px;
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .pokemon-card:hover {
+            transform: scale(1.05);
+        }
+
+        .details {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .details img {
+            width: 120px;
+        }
+
+        .type {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 10px;
+            margin: 3px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .type.fire { background: #ff5722; }
+        .type.grass { background: #4caf50; }
+        .type.water { background: #2196f3; }
+        .type.poison { background: #9c27b0; }
+        .type.flying { background: #03a9f4; }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .stat {
+            background: #eee;
+            margin: 3px;
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .pagination button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 5px;
+            background: #ddd;
+            cursor: pointer;
+        }
+
+        .pagination button.active {
+            background: #2196f3;
+            color: white;
+        }
+
+        @media(max-width: 800px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <input type="text" id="searchInput" placeholder="Search your Pokémon..." oninput="filterPokemon()">
+</header>
+
+<div class="container">
+    <div>
+        <div id="pokemon-list" class="pokemon-list"></div>
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <div id="details" class="details">
+        <p>Select a Pokémon to view details.</p>
+    </div>
+</div>
+
+<script>
+    const pokemonList = document.getElementById('pokemon-list');
+    const paginationDiv = document.getElementById('pagination');
+    const detailsDiv = document.getElementById('details');
+    const searchInput = document.getElementById('searchInput');
+
+    let allPokemons = [];
+    let filteredPokemons = [];
+    let currentPage = 1;
+    const pokemonsPerPage = 20;
+
+    fetch('https://pokeapi.co/api/v2/pokemon?limit=151')
+        .then(res => res.json())
+        .then(data => {
+            const promises = data.results.map(p => fetch(p.url).then(res => res.json()));
+            Promise.all(promises).then(results => {
+                allPokemons = results;
+                filteredPokemons = allPokemons;
+                renderPage();
+                createPagination();
+            });
+        });
+
+    function renderPage() {
+        pokemonList.innerHTML = '';
+
+        const start = (currentPage - 1) * pokemonsPerPage;
+        const end = start + pokemonsPerPage;
+        const pokemonsToDisplay = filteredPokemons.slice(start, end);
+
+        pokemonsToDisplay.forEach(pokemon => {
+            const card = document.createElement('div');
+            card.className = 'pokemon-card';
+            card.innerHTML = `
+                <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+                <h4>#${pokemon.id} ${pokemon.name}</h4>
+                <div>
+                    ${pokemon.types.map(t => `<span class="type ${t.type.name}">${t.type.name}</span>`).join('')}
+                </div>
+            `;
+            card.onclick = () => showDetails(pokemon);
+            pokemonList.appendChild(card);
+        });
+
+        updatePagination();
+    }
+
+    function createPagination() {
+        paginationDiv.innerHTML = '';
+
+        const totalPages = Math.ceil(filteredPokemons.length / pokemonsPerPage);
+
+        const prevButton = document.createElement('button');
+        prevButton.textContent = '<';
+        prevButton.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderPage();
+            }
+        };
+        paginationDiv.appendChild(prevButton);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const btn = document.createElement('button');
+            btn.textContent = i;
+            btn.onclick = () => {
+                currentPage = i;
+                renderPage();
+            };
+            paginationDiv.appendChild(btn);
+        }
+
+        const nextButton = document.createElement('button');
+        nextButton.textContent = '>';
+        nextButton.onclick = () => {
+            const totalPages = Math.ceil(filteredPokemons.length / pokemonsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderPage();
+            }
+        };
+        paginationDiv.appendChild(nextButton);
+    }
+
+    function updatePagination() {
+        const buttons = paginationDiv.querySelectorAll('button');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        if (buttons[currentPage]) {
+            buttons[currentPage].classList.add('active');
+        }
+    }
+
+    function showDetails(pokemon) {
+        detailsDiv.innerHTML = `
+            <img src="${pokemon.sprites.other?.showdown?.front_default || pokemon.sprites.front_default}" alt="${pokemon.name}">
+            <h2>${pokemon.name.toUpperCase()}</h2>
+            <div>
+                ${pokemon.types.map(t => `<span class="type ${t.type.name}">${t.type.name}</span>`).join('')}
+            </div>
+            <p><strong>Height:</strong> ${pokemon.height / 10} m</p>
+            <p><strong>Weight:</strong> ${pokemon.weight / 10} kg</p>
+            <p><strong>Base Experience:</strong> ${pokemon.base_experience}</p>
+            <div class="stats">
+                ${pokemon.stats.map(s => `<div class="stat">${s.stat.name}: ${s.base_stat}</div>`).join('')}
+            </div>
+        `;
+    }
+
+    function filterPokemon() {
+        const value = searchInput.value.toLowerCase();
+        filteredPokemons = allPokemons.filter(p => p.name.includes(value));
+        currentPage = 1;
+        renderPage();
+        createPagination();
+    }
+</script>
+
+</body>
+</html>
